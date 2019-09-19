@@ -1,0 +1,34 @@
+{
+    "time_budget": 300,
+    "time_col": "t_1",
+    "start_time": 1550654179,
+    "tables": {
+        "main": {
+            "t_1": "time",
+            "c_1": "cat",
+            "n_1": "num"
+        },
+        "table_1": {
+            "c_1": "cat",
+            "m_1": "multi-cat"
+        },
+        "table_2": {
+            "c_2": "cat",
+            "t_1": "time"
+        }
+    },
+    "relations": [
+        {
+            "table_A": "main",
+            "table_B": "table_1",
+            "key": ["c_1"],
+            "type": "many_to_one"
+        },
+        {
+            "table_A": "main",
+            "table_B": "table_2",
+            "key": ["t_1"],
+            "type": "many_to_many"
+        }
+    ]
+}
