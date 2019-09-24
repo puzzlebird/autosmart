@@ -160,7 +160,7 @@ class LGBFeatureSelectionLast(Feat):
         y_pos = len(y[y==1])
         y_neg = len(y[y==0])
         unbalance_ratio = y_pos / y_neg if y_pos > y_neg else y_neg / y_pos
-        memory_usage = pd.Series(np.zeros(shape[0]),dtype=np.float32).memory_usage() / 1024 / 1024 / 1024
+        memory_usage = pd.Series(np.zeros(shape[0]),dtype=np.float32).memory_usage() / 1024 / 1024 / 1024 # 0.0008GB
         gc.collect()
         
         if unbalance_ratio >= 7:
@@ -170,7 +170,7 @@ class LGBFeatureSelectionLast(Feat):
         else:
             memory_constrain = 1.6
             
-        col_constrain =  int(memory_constrain / memory_usage)
+        col_constrain =  int(memory_constrain / memory_usage) # 2374列
         
         end_time = time.time()
         

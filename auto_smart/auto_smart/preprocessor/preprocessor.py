@@ -174,7 +174,7 @@ class MSCatPreprocessor(Preprocessor):
 
             codes = pd.Categorical(ss,categories=self.cats).codes + CONSTANT.CAT_SHIFT
             codes = codes.astype('float')
-            codes[codes==(CONSTANT.CAT_SHIFT-1)] = np.nan
+            codes[codes==(CONSTANT.CAT_SHIFT-1)] = np.nan # equals to codes[codes==-1] = np.nan
 
             codes = downcast(codes,accuracy_loss=False)
             return codes

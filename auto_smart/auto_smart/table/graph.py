@@ -183,6 +183,7 @@ class Graph:
                                     name2 = t_name_2+':'+col2
                                     mc_graph[name1][name2] = 1
                                     mc_graph[name2][name1] = 1
+                                    # log(f'init: {name1}, {name2}')      
             
             log('init mcgraph')      
             
@@ -224,6 +225,7 @@ class Graph:
                     if len(all_cat2set[name1] & all_cat2set[name2])/less_len > 0.1:
                         mc_graph[name1][name2] = 1
                         mc_graph[name2][name1] = 1
+                        # log(f'same: {name1}, {name2}') 
             
             block2name = {}
 

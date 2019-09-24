@@ -10,7 +10,11 @@ def rename_key(d: dict, name: str):
             fields = item.split('.') if '.' in item else item.split(':')
             for i in range(len(fields)):
                 res['_'.join([name, key, str(i)])] = fields[i]
-        elif 'options' not in key:
+        elif 'options' in key:
+            pass
+        elif 'load' in key or 'data' in key:
+            res[name + '_' + key] = hash(item)
+        else:
             res[name + '_' + key] = item
     return res
 
@@ -52,8 +56,8 @@ def getData(path):
 
         label = int("201902011450.pcap" not in f)
 
-        if "201902011450.pcap" in f:
-            continue
+        # if "201902011450.pcap" in f:
+        #     continue
 
         try:
             s = PcapReader(f)
@@ -64,36 +68,24 @@ def getData(path):
                     break
                 else:
 
-                    p.show()
+                    # p.show()
 
-                    # def expand(x):
-                    #     yield x
-                    #     while x.payload:
-                    #         x = x.payload
-                    #         yield x
+                    def expand(x):
+                        yield x
+                        while x.payload:
+                            x = x.payload
+                            yield x
 
-                    # layers = expand(p)
+                    layers = expand(p)
 
-                    # data = {}
+                    data = {}
+                    data['label'] = label
+                    data['time'] = p.time
 
-                    # for i, layer in enumerate(layers):
-
-                    #     print(layer.fields, layer.name)
-                    #     data.update(rename_key)
+                    for i, layer in enumerate(layers):
+                        data.update(rename_key(layer.fields, layer.name))
 
                     
-                    data['label'] = label
-                    if p.haslayer("Ether"):
-                        data.update(rename_key(p[Ether].fields, 'ether'))
-                    if p.haslayer("IP"):
-                        data.update(rename_key(p[IP].fields, 'ip'))
-                    if p.haslayer("IPv6"):
-                        data.update(rename_key(p[IPv6].fields, 'ipv6'))
-                    if p.haslayer("TCP"):
-                        data.update(rename_key(p[TCP].fields, 'tcp'))
-                    if hasattr(p, 'load'):
-                        data['load'] = hash(p.load)
-                    data['time'] = p.time
                     if p.type == 2048: # indicates ipv4
                         f_ipv4.append(data)
                         c_ipv4 = c_ipv4 + 1
@@ -101,11 +93,11 @@ def getData(path):
                         f_ipv6.append(data)
                         c_ipv6 = c_ipv6 + 1
                     
-                    if c_ipv4 > 999:
+                    if c_ipv4 > 10000:
                         write_ipv4(pd.DataFrame(f_ipv4))
                         c_ipv4 = 0
                         f_ipv4 = []
-                    if c_ipv6 > 999:
+                    if c_ipv6 > 10000:
                         write_ipv6(pd.DataFrame(f_ipv6))
                         c_ipv6 = 0
                         f_ipv6 = []
