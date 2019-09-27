@@ -34,7 +34,8 @@ def generalLayer(layer):
         if 'src' in key or 'dst' in key:
             # TODO
             # src = 2002:dca5:f85::dca5:f85 [6to4 GW: 220.165.15.133] from ips_2002-dca5-f85--dca5-f85_20190131_202924_543872217.pcap
-            fields = item.split('.') if '.' in item and ':' not in item else item.split(':') 
+            fields = item.split('.') if '.' in item and ':' not in item else item.split(':')
+            fields = fields[:6] 
             for i in range(len(fields)):
                 data['_'.join([layer.name, key, str(i)])] = fields[i]
         elif 'data' in key or 'load' in key:
@@ -78,6 +79,8 @@ def dnsLayer(layer):
     data = {}
     for key, item in layer.fields.items():
         if 'qd' == key or 'ar' == key:
+            if item is None:
+                continue
             if type(item) == list:
                 item = item[0] # TODO
             for k, i in item.fields.items():
@@ -236,7 +239,7 @@ def expand(x):
 class GeneralPacket:
 
     def __init__(self, packet_id, path):
-        self.id = '_'.join(i[:3] for i in packet_id.split('_'))
+        self.id = packet_id #'_'.join(i[:3] for i in packet_id.split('_'))
         self.count = 0
         self.run = False
         self.path = os.path.join(path, self.id) + '.csv'
@@ -252,11 +255,11 @@ class GeneralPacket:
         for i, layer in enumerate(expand(pkt), 0):
             try:
                 data.update(all_layers[layer.name](layer))
-            except:
+            except KeyError:
                 data.update(generalLayer(layer))
         self.count += 1
         self.buffer.append(data)
-        if self.count % 100 == 0:
+        if self.count % 1000 == 0:
             self.write()
 
     def write(self):
@@ -328,14 +331,15 @@ def scan_for_unique_packets(fs):
 
 def processFile(f, ppus):
 
-    label = int("201902011450.pcap" not in f)
+    label = int("201902011450" not in f)
 
     try:
         s = PcapReader(f)
         while True:
             try:
                 p = s.read_packet()
-                packet_id = getPID([layer.name for i, layer in enumerate(expand(p), 0)])
+                # packet_id = getPID([layer.name for i, layer in enumerate(expand(p), 0)])
+                packet_id = getPIDFromPkt(p)
                 ppus[packet_id].getData(p, label)
             except EOFError:
                 break
@@ -357,8 +361,9 @@ def generate(path):
     example = 'demo/example.pcap'
     pkts = rdpcap(example)
     ppus = [getPIDFromPkt(p) for p in pkts]
+    ppus = list(set(ppus))
     ppus = [(pid, GeneralPacket(pid, 'demo/tables')) for pid in ppus]
-    ppus = dict(ppus)
+    ppus = dict(ppus)    
 
     start_time = time.time()
 
@@ -381,6 +386,9 @@ def generate(path):
     # processFile(example, ppus)
     
     [ppu.write() for i, ppu in ppus.items()]
+    total = sum([ppu.count for i, ppu in ppus.items()])
+    print('total packet:', total)
+
 
             
 def split_pcap(f):
